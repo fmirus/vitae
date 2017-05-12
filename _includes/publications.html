@@ -1,0 +1,488 @@
+<!DOCTYPE HTML>
+<html>
+<section class="thirteen columns">
+    <h1>Publications</h1>
+
+<head>
+<title>JabRef references</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript">
+<!--
+// QuickSearch script for JabRef HTML export
+// Version: 3.0
+//
+// Copyright (c) 2006-2011, Mark Schenk
+//
+// This software is distributed under a Creative Commons Attribution 3.0 License
+// http://creativecommons.org/licenses/by/3.0/
+//
+// Features:
+// - intuitive find-as-you-type searching
+//    ~ case insensitive
+//    ~ ignore diacritics (optional)
+//
+// - search with/without Regular Expressions
+// - match BibTeX key
+//
+
+// Search settings
+var searchAbstract = true;	// search in abstract
+var searchReview = true;	// search in review
+
+var noSquiggles = true; 	// ignore diacritics when searching
+var searchRegExp = false; 	// enable RegExp searches
+
+
+if (window.addEventListener) {
+	window.addEventListener("load",initSearch,false); }
+else if (window.attachEvent) {
+	window.attachEvent("onload", initSearch); }
+
+function initSearch() {
+	// check for quick search table and searchfield
+	if (!document.getElementById('qs_table')||!document.getElementById('quicksearch')) { return; }
+
+	// load all the rows and sort into arrays
+	loadTableData();
+
+	//find the query field
+	qsfield = document.getElementById('qs_field');
+
+	// previous search term; used for speed optimisation
+	prevSearch = '';
+
+	//find statistics location
+	stats = document.getElementById('stat');
+	setStatistics(-1);
+
+	// set up preferences
+	initPreferences();
+
+	// shows the searchfield
+	document.getElementById('quicksearch').style.display = 'block';
+	document.getElementById('qs_field').onkeyup = quickSearch;
+}
+
+function loadTableData() {
+	// find table and appropriate rows
+	searchTable = document.getElementById('qs_table');
+	var allRows = searchTable.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+	// split all rows into entryRows and infoRows (e.g. abstract, review, bibtex)
+	entryRows = new Array(); infoRows = new Array(); absRows = new Array(); revRows = new Array();
+
+	// get data from each row
+	entryRowsData = new Array(); absRowsData = new Array(); revRowsData = new Array();
+
+	BibTeXKeys = new Array();
+
+	for (var i=0, k=0, j=0; i<allRows.length;i++) {
+		if (allRows[i].className.match(/entry/)) {
+			entryRows[j] = allRows[i];
+			entryRowsData[j] = stripDiacritics(getTextContent(allRows[i]));
+			allRows[i].id ? BibTeXKeys[j] = allRows[i].id : allRows[i].id = 'autokey_'+j;
+			j ++;
+		} else {
+			infoRows[k++] = allRows[i];
+			// check for abstract/review
+			if (allRows[i].className.match(/abstract/)) {
+				absRows.push(allRows[i]);
+				absRowsData[j-1] = stripDiacritics(getTextContent(allRows[i]));
+			} else if (allRows[i].className.match(/review/)) {
+				revRows.push(allRows[i]);
+				revRowsData[j-1] = stripDiacritics(getTextContent(allRows[i]));
+			}
+		}
+	}
+	//number of entries and rows
+	numEntries = entryRows.length;
+	numInfo = infoRows.length;
+	numAbs = absRows.length;
+	numRev = revRows.length;
+}
+
+function quickSearch(){
+
+	tInput = qsfield;
+
+	if (tInput.value.length == 0) {
+		showAll();
+		setStatistics(-1);
+		qsfield.className = '';
+		return;
+	} else {
+		t = stripDiacritics(tInput.value);
+
+		if(!searchRegExp) { t = escapeRegExp(t); }
+
+		// only search for valid RegExp
+		try {
+			textRegExp = new RegExp(t,"i");
+			closeAllInfo();
+			qsfield.className = '';
+		}
+			catch(err) {
+			prevSearch = tInput.value;
+			qsfield.className = 'invalidsearch';
+			return;
+		}
+	}
+
+	// count number of hits
+	var hits = 0;
+
+	// start looping through all entry rows
+	for (var i = 0; cRow = entryRows[i]; i++){
+
+		// only show search the cells if it isn't already hidden OR if the search term is getting shorter, then search all
+		if(cRow.className.indexOf('noshow')==-1 || tInput.value.length <= prevSearch.length){
+			var found = false;
+
+			if (entryRowsData[i].search(textRegExp) != -1 || BibTeXKeys[i].search(textRegExp) != -1){
+				found = true;
+			} else {
+				if(searchAbstract && absRowsData[i]!=undefined) {
+					if (absRowsData[i].search(textRegExp) != -1){ found=true; }
+				}
+				if(searchReview && revRowsData[i]!=undefined) {
+					if (revRowsData[i].search(textRegExp) != -1){ found=true; }
+				}
+			}
+
+			if (found){
+				cRow.className = 'entry show';
+				hits++;
+			} else {
+				cRow.className = 'entry noshow';
+			}
+		}
+	}
+
+	// update statistics
+	setStatistics(hits)
+
+	// set previous search value
+	prevSearch = tInput.value;
+}
+
+
+// Strip Diacritics from text
+// http://stackoverflow.com/questions/990904/javascript-remove-accents-in-strings
+
+// String containing replacement characters for stripping accents
+var stripstring =
+    'AAAAAAACEEEEIIII'+
+    'DNOOOOO.OUUUUY..'+
+    'aaaaaaaceeeeiiii'+
+    'dnooooo.ouuuuy.y'+
+    'AaAaAaCcCcCcCcDd'+
+    'DdEeEeEeEeEeGgGg'+
+    'GgGgHhHhIiIiIiIi'+
+    'IiIiJjKkkLlLlLlL'+
+    'lJlNnNnNnnNnOoOo'+
+    'OoOoRrRrRrSsSsSs'+
+    'SsTtTtTtUuUuUuUu'+
+    'UuUuWwYyYZzZzZz.';
+
+function stripDiacritics(str){
+
+    if(noSquiggles==false){
+        return str;
+    }
+
+    var answer='';
+    for(var i=0;i<str.length;i++){
+        var ch=str[i];
+        var chindex=ch.charCodeAt(0)-192;   // Index of character code in the strip string
+        if(chindex>=0 && chindex<stripstring.length){
+            // Character is within our table, so we can strip the accent...
+            var outch=stripstring.charAt(chindex);
+            // ...unless it was shown as a '.'
+            if(outch!='.')ch=outch;
+        }
+        answer+=ch;
+    }
+    return answer;
+}
+
+// http://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
+// NOTE: must escape every \ in the export code because of the JabRef Export...
+function escapeRegExp(str) {
+  return str.replace(/[-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+}
+
+function toggleInfo(articleid,info) {
+
+	var entry = document.getElementById(articleid);
+	var abs = document.getElementById('abs_'+articleid);
+	var rev = document.getElementById('rev_'+articleid);
+	var bib = document.getElementById('bib_'+articleid);
+
+	if (abs && info == 'abstract') {
+		abs.className.indexOf('noshow') == -1?abs.className = 'abstract noshow':abs.className = 'abstract show';
+	} else if (rev && info == 'review') {
+		rev.className.indexOf('noshow') == -1?rev.className = 'review noshow':rev.className = 'review show';
+	} else if (bib && info == 'bibtex') {
+		bib.className.indexOf('noshow') == -1?bib.className = 'bibtex noshow':bib.className = 'bibtex show';
+	} else {
+		return;
+	}
+
+	// check if one or the other is available
+	var revshow; var absshow; var bibshow;
+	(abs && abs.className.indexOf('noshow') == -1)? absshow = true: absshow = false;
+	(rev && rev.className.indexOf('noshow') == -1)? revshow = true: revshow = false;
+	(bib && bib.className.indexOf('noshow') == -1)? bibshow = true: bibshow = false;
+
+	// highlight original entry
+	if(entry) {
+		if (revshow || absshow || bibshow) {
+		entry.className = 'entry highlight show';
+		} else {
+		entry.className = 'entry show';
+		}
+	}
+
+	// When there's a combination of abstract/review/bibtex showing, need to add class for correct styling
+	if(absshow) {
+		(revshow||bibshow)?abs.className = 'abstract nextshow':abs.className = 'abstract';
+	}
+	if (revshow) {
+		bibshow?rev.className = 'review nextshow': rev.className = 'review';
+	}
+
+}
+
+function setStatistics (hits) {
+	if(hits < 0) { hits=numEntries; }
+	if(stats) { stats.firstChild.data = hits + '/' + numEntries}
+}
+
+function getTextContent(node) {
+	// Function written by Arve Bersvendsen
+	// http://www.virtuelvis.com
+
+	if (node.nodeType == 3) {
+	return node.nodeValue;
+	} // text node
+	if (node.nodeType == 1 && node.className != "infolinks") { // element node
+	var text = [];
+	for (var chld = node.firstChild;chld;chld=chld.nextSibling) {
+		text.push(getTextContent(chld));
+	}
+	return text.join("");
+	} return ""; // some other node, won't contain text nodes.
+}
+
+function showAll(){
+	closeAllInfo();
+	for (var i = 0; i < numEntries; i++){ entryRows[i].className = 'entry show'; }
+}
+
+function closeAllInfo(){
+	for (var i=0; i < numInfo; i++){
+		if (infoRows[i].className.indexOf('noshow') ==-1) {
+			infoRows[i].className = infoRows[i].className + ' noshow';
+		}
+	}
+}
+
+function clearQS() {
+	qsfield.value = '';
+	showAll();
+}
+
+function redoQS(){
+	showAll();
+	quickSearch(qsfield);
+}
+
+function updateSetting(obj){
+	var option = obj.id;
+	var checked = obj.value;
+
+	switch(option)
+	 {
+	 case "opt_searchAbs":
+	   searchAbstract=!searchAbstract;
+	   redoQS();
+	   break;
+	 case "opt_searchRev":
+	   searchReview=!searchReview;
+	   redoQS();
+	   break;
+	 case "opt_useRegExp":
+	   searchRegExp=!searchRegExp;
+	   redoQS();
+	   break;
+	 case "opt_noAccents":
+	   noSquiggles=!noSquiggles;
+	   loadTableData();
+	   redoQS();
+	   break;
+	 }
+}
+
+function initPreferences(){
+	if(searchAbstract){document.getElementById("opt_searchAbs").checked = true;}
+	if(searchReview){document.getElementById("opt_searchRev").checked = true;}
+	if(noSquiggles){document.getElementById("opt_noAccents").checked = true;}
+	if(searchRegExp){document.getElementById("opt_useRegExp").checked = true;}
+
+	if(numAbs==0) {document.getElementById("opt_searchAbs").parentNode.style.display = 'none';}
+	if(numRev==0) {document.getElementById("opt_searchRev").parentNode.style.display = 'none';}
+}
+
+function toggleSettings(){
+	var togglebutton = document.getElementById('showsettings');
+	var settings = document.getElementById('settings');
+
+	if(settings.className == "hidden"){
+		settings.className = "show";
+		togglebutton.innerText = "close settings";
+		togglebutton.textContent = "close settings";
+	}else{
+		settings.className = "hidden";
+		togglebutton.innerText = "settings...";
+		togglebutton.textContent = "settings...";
+	}
+}
+
+-->
+</script>
+<style type="text/css">
+body { background-color: white; font-family: Arial, sans-serif; font-size: 13px; line-height: 1.2; padding: 1em; color: #2E2E2E; width: 50em; margin: auto auto; }
+
+form#quicksearch { width: auto; border-style: solid; border-color: gray; border-width: 1px 0px; padding: 0.7em 0.5em; display:none; position:relative; }
+span#searchstat {padding-left: 1em;}
+
+div#settings { margin-top:0.7em; /* border-bottom: 1px transparent solid; background-color: #efefef; border: 1px grey solid; */ }
+div#settings ul {margin: 0; padding: 0; }
+div#settings li {margin: 0; padding: 0 1em 0 0; display: inline; list-style: none; }
+div#settings li + li { border-left: 2px #efefef solid; padding-left: 0.5em;}
+div#settings input { margin-bottom: 0px;}
+
+div#settings.hidden {display:none;}
+
+#showsettings { border: 1px grey solid; padding: 0 0.5em; float:right; line-height: 1.6em; text-align: right; }
+#showsettings:hover { cursor: pointer; }
+
+.invalidsearch { background-color: red; }
+input[type="button"] { background-color: #efefef; border: 1px #2E2E2E solid;}
+
+table { border: 1px gray none; width: 100%; empty-cells: show; border-spacing: 0em 0.1em; margin: 1em 0em; }
+th, td { border: none; padding: 0.5em; vertical-align: top; text-align: justify; }
+
+td a { color: navy; text-decoration: none; }
+td a:hover  { text-decoration: underline; }
+
+tr.noshow { display: none;}
+tr.highlight td { background-color: #EFEFEF; border-top: 2px #2E2E2E solid; font-weight: bold; }
+tr.abstract td, tr.review td, tr.bibtex td { background-color: #EFEFEF; text-align: justify; border-bottom: 2px #2E2E2E solid; }
+tr.nextshow td { border-bottom-style: none; }
+
+tr.bibtex pre { width: 100%; overflow: auto; white-space: pre-wrap;}
+p.infolinks { margin: 0.3em 0em 0em 0em; padding: 0px; }
+
+@media print {
+	p.infolinks, #qs_settings, #quicksearch, t.bibtex { display: none !important; }
+	tr { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<table id="qs_table" border="1">
+<tbody>
+<tr id="Beyeler2014" class="entry">
+	<td>Beyeler M, Mirus F and Verl A (2014), <i>"Vision-based robust road lane detection in urban environments"</i>, In 2014 IEEE International Conference on Robotics and Automation, ICRA<br> 2014, Hong Kong, China, May 31 - June 7, 2014. , pp. 4920-4925. IEEE.
+	<p class="infolinks">[<a href="javascript:toggleInfo('Beyeler2014','abstract')">Abstract</a>] [<a href="javascript:toggleInfo('Beyeler2014','bibtex')">BibTeX</a>] [<a href="http://dx.doi.org/10.1109/ICRA.2014.6907580" target="_blank">DOI</a>] [<a href="http://dx.doi.org/10.1109/ICRA.2014.6907580" target="_blank">URL</a>]</p>
+	</td>
+</tr>
+<tr id="abs_Beyeler2014" class="abstract noshow">
+	<td><b>Abstract</b>: Road and lane detection play an important role in autonomous driving and commercial driver-assistance systems. Vision-based road detection is an essential step towards autonomous driving, yet a challenging task due to illumination and complexity of the visual scenery. Urban scenes may present additional challenges such as intersections, multi-lane scenarios, or clutter due to heavy traffic. This paper presents an integrative approach to ego-lane detection that aims to be as simple as possible to enable real-time computation while being able to adapt to a variety of urban and rural traffic scenarios. The approach at hand combines and extends a road segmentation method in an illumination-invariant color image, lane markings detection using a ridge operator, and road geometry estimation using RANdom SAmple Consensus (RANSAC). Employing the segmented road region as a prior for lane markings extraction significantly improves the execution time and success rate of the RANSAC algorithm, and makes the detection of weakly pronounced ridge structures computationally tractable, thus enabling ego-lane detection even in the absence of lane markings. Segmentation performance is shown to increase when moving from a color-based to a histogram correlation-based model. The power and robustness of this algorithm has been demonstrated in a car simulation system as well as in the challenging KITTI data base of real-world urban traffic scenarios.</td>
+</tr>
+<tr id="bib_Beyeler2014" class="bibtex noshow">
+<td><b>BibTeX</b>:
+<pre>
+@inproceedings{Beyeler2014,
+  author = {Michael Beyeler and<br> Florian Mirus and<br> Alexander Verl},
+  title = {Vision-based robust road lane detection in urban environments},
+  booktitle = {2014 IEEE International Conference on Robotics and Automation, ICRA<br> 2014, Hong Kong, China, May 31 - June 7, 2014},
+  publisher = {IEEE},
+  year = {2014},
+  pages = {4920--4925},
+  url = {http://dx.doi.org/10.1109/ICRA.2014.6907580},
+  doi = {10.1109/ICRA.2014.6907580}
+}
+</pre></td>
+</tr>
+<tr id="Connette2012" class="entry">
+	<td>Connette C, Fischer J, Maidel B, Mirus F, Nilsson S, Pfeiffer K, Verl A, Durbec A, Ewert B, Haar T and Gruedl D (2012), <i>"Rapid Detection of Fast Objects in Highly Dynamic Outdoor Environments using Cost-Efficient Sensors"</i>, In Robotics; Proceedings of ROBOTIK 2012; 7th German Conference on., May, 2012. , pp. 1-4.
+	<p class="infolinks">[<a href="javascript:toggleInfo('Connette2012','abstract')">Abstract</a>] [<a href="javascript:toggleInfo('Connette2012','bibtex')">BibTeX</a>]</p>
+	</td>
+</tr>
+<tr id="abs_Connette2012" class="abstract noshow">
+	<td><b>Abstract</b>: In recent years driver-assistance systems have emerged as one major possibility to increase comfort and - even more important - safety in road traffic. Still, cost is one major hindrance to the widespread use of safety systems such as lane change or blind spot warning. To facilitate the widespread adoption of such safety systems, thus increasing safety for all traffic participants, the use of cost-efficient components is of crucial importance. This paper investigates the usage of cost-efficient, widely used ultrasonic sensors for blind spot warning at high velocities. The normative aspects as well as the functional requirements originating from considerations on human-machine interaction and user-experience are discussed. A fuzzy-markov-chain based approach for the detection of fast objects is outlined. The proposed procedure is implemented on a regular electronic control unit (ECU) and qualitatively and quantitatively evaluated in real road traffic scenarios.</td>
+</tr>
+<tr id="bib_Connette2012" class="bibtex noshow">
+<td><b>BibTeX</b>:
+<pre>
+@inproceedings{Connette2012,
+  author = {C. Connette and J. Fischer and B. Maidel and F. Mirus and S. Nilsson and K. Pfeiffer and A. Verl and A. Durbec and B. Ewert and T. Haar and D. Gruedl},
+  title = {Rapid Detection of Fast Objects in Highly Dynamic Outdoor Environments using Cost-Efficient Sensors},
+  booktitle = {Robotics; Proceedings of ROBOTIK 2012; 7th German Conference on},
+  year = {2012},
+  pages = {1-4}
+}
+</pre></td>
+</tr>
+<tr id="Mirus2012" class="entry">
+	<td>Mirus F, Pfadt J, Connette C, Ewert B, Gr&uuml;dl D and Verl A (2012), <i>"Detection of Moving and Stationary Objects at High Velocities using Cost-Efficient Sensors, Curve-Fitting and Neural Networks"</i>, In 4th Workshop on Planning, Perception and Navigation for Intelligent Vehicles, 2012 IEEE/RSJ International Conference on Intelligent Robots and Systems IROS<br> 2012, Vilamoura, Portugal, Ocotber 7-12th, 2012.  IEEE.
+	<p class="infolinks">[<a href="javascript:toggleInfo('Mirus2012','abstract')">Abstract</a>] [<a href="javascript:toggleInfo('Mirus2012','bibtex')">BibTeX</a>]</p>
+	</td>
+</tr>
+<tr id="abs_Mirus2012" class="abstract noshow">
+	<td><b>Abstract</b>: In recent years, driver-assistance systems have emerged as one major possibility to increase comfort and – even more important – safety in road traffic. Still, cost is one major hindrance to the widespread use of safety systems such as lane change or blind spot warning. To facilitate the widespread adoption of such assistance systems, thus increasing safety for all traffic participants, the use of cost-efficient components is of crucial importance. This paper investigates the usage of cost-efficient, widely used ultrasonic sensors for blind spot warning at high velocities. After discussing the requirements and setup of such a system a model-based approach for the detection of moving and stationary objects is outlined. The sensor-signal is compared with a precalculated curve data base and the correlation-coefficients are feeded into a neural network. To revise its performance the concept at hand is qualitatively and quantitatively evaluated in real road traffic situations under different driving conditions.</td>
+</tr>
+<tr id="bib_Mirus2012" class="bibtex noshow">
+<td><b>BibTeX</b>:
+<pre>
+@inproceedings{Mirus2012,
+  author = {Florian Mirus and J&uuml;rgen Pfadt and C. Connette and Bj&ouml;rn Ewert and Dietmar Gr&uuml;dl and<br> Alexander Verl},
+  title = {Detection of Moving and Stationary Objects at High Velocities using Cost-Efficient Sensors, Curve-Fitting and Neural Networks},
+  booktitle = {4th Workshop on Planning, Perception and Navigation for Intelligent Vehicles, 2012 IEEE/RSJ International Conference on Intelligent Robots and Systems IROS<br> 2012, Vilamoura, Portugal, Ocotber 7-12th, 2012},
+  publisher = {IEEE},
+  year = {2012}
+}
+</pre></td>
+</tr>
+<tr id="Mirus2016" class="entry">
+	<td>Mirus F, Slomian F, D&ouml;rr S, Lopez FG, Gruhler M and Pfadt J (2016), <i>"A Modular Hybrid Localization Approach for Mobile Robots Combining Local Grid Maps and Natural Landmarks"</i>, In Proceedings of the 31st Annual ACM Symposium on Applied Computing. New York, NY, USA , pp. 287-290. ACM.
+	<p class="infolinks">[<a href="javascript:toggleInfo('Mirus2016','abstract')">Abstract</a>] [<a href="javascript:toggleInfo('Mirus2016','bibtex')">BibTeX</a>] [<a href="http://dx.doi.org/10.1145/2851613.2851929" target="_blank">DOI</a>] [<a href="http://doi.acm.org/10.1145/2851613.2851929" target="_blank">URL</a>]</p>
+	</td>
+</tr>
+<tr id="abs_Mirus2016" class="abstract noshow">
+	<td><b>Abstract</b>: This paper presents a hybrid localization approach for mobile robots combining local grid maps and natural landmarks. The approach at hand benefits from the advantages of both environment representations. While using memory-efficient geometric models describing natural landmarks as features for localization in structured regions, the proposed system clusters the remaining areas as raw local grid maps and incorporates those as pose features only for unstructured areas of the environment. To evaluate the functionality and performance of the approach at hand, extensive testing and benchmarking in an experimental setup has been conducted using an external sensor system for reference measurements.</td>
+</tr>
+<tr id="bib_Mirus2016" class="bibtex noshow">
+<td><b>BibTeX</b>:
+<pre>
+@inproceedings{Mirus2016,
+  author = {Mirus, Florian and Slomian, Frank and D&ouml;rr, Stefan and Lopez, Felipe Garcia and Gruhler, Matthias and Pfadt, J&uuml;rgen},
+  title = {A Modular Hybrid Localization Approach for Mobile Robots Combining Local Grid Maps and Natural Landmarks},
+  booktitle = {Proceedings of the 31st Annual ACM Symposium on Applied Computing},
+  publisher = {ACM},
+  year = {2016},
+  pages = {287--290},
+  url = {http://doi.acm.org/10.1145/2851613.2851929},
+  doi = {10.1145/2851613.2851929}
+}
+</pre></td>
+</tr>
+</tbody>
+</table>
+<!-- file generated by JabRef -->
+</body>
+</section>
+</html>
