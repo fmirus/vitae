@@ -33,7 +33,7 @@ google_maps: 'https://www.google.de/maps/place/M%C3%BCnchen/@48.1545703,11.26165
 # postcode: 85386
 city: Munich
 country: Germany
-#google_analytics: UA-69300817-1
+google_analytics: UA-99083854-2
 
 # needed for travis-ci build
 exclude: [vendor]
