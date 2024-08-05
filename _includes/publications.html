@@ -393,14 +393,42 @@ p.infolinks { margin: 0.3em 0em 0em 0em; padding: 0px; }
 <body>
 
 <table id="qs_table" border="1">
-<tbody>
+<<tr id="Zhang2024a" class="entry">
+	<td>Zhang Y, Pasch F, <strong>Mirus F</strong>, Scholl K-U, Wurll C, Hein B (2024) <i>"Conquering the Robotic Software Development Cycle at Scale: Using KubeROS from Simulation to Real-world Deployment"</i>, In: IEEE 20th International Conference on Automation Science and Engineering (CASE), 2024
+	<p class="infolinks">[<a href="javascript:toggleInfo('Zhang2024a','abstract')">Abstract</a>] [<a href="javascript:toggleInfo('Zhang2024a','bibtex')">BibTeX</a>] </p>
+	</td>
+</tr>tbody>
+<tr id="Zhang2024a" class="entry">
+	<td>Zhang Y, Pasch F, <strong>Mirus F</strong>, Scholl K-U, Wurll C, Hein B (2024) <i>"Conquering the Robotic Software Development Cycle at Scale: Using KubeROS from Simulation to Real-world Deployment"</i>, In: IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2024
+	<p class="infolinks">[<a href="javascript:toggleInfo('Zhang2024','abstract')">Abstract</a>] [<a href="javascript:toggleInfo('Zhang2024a','bibtex')">BibTeX</a>] </p>
+	</td>
+</tr>
+<tr id="abs_Zhang2024a" class="abstract noshow">
+	<td><b>Abstract</b>: Offloading software modules to the cloud/edge can enhance a robot’s capabilities by leveraging massive computing power. However, determining which software module should be offloaded and scheduled to which robot/edge/cloud node is a challenging task, particularly for robot fleets with diverse tasks. In this paper, we tackle the scheduling problem and introduce a taxonomy to categorize software modules and classify their applicability and requirements for offloading. Additionally, by using prior measurements, we model the compute cluster and formalize scheduling as a multi-objective optimization problem which we tackle with a genetic algorithm. To evaluate our approach with a challenging setup, we built a mobile manipulation task using open-source frameworks and libraries in the Robot Operating System (ROS2) community in simulation as well as a mildly simplified real-world variant. Our evaluation shows significant improvements compared to the built-in scheduler of Kubernetes (K8s) regarding robotic specific metrics such as the rate of missed cycle time in both simulated and real-world experiments.
+</tr>
+<tr id="bib_Zhang2024a" class="bibtex noshow">
+<td><b>BibTeX</b>:
+<pre>
+@InProceedings{Zhang2024,
+  author    = {Yongzhou Zhang and Frederik Pasch and Florian Mirus and Kay-Ulrich Scholl and Christian Wurll and Bjorn Hein},
+  booktitle = {2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+  title     = {{A Comprehensive Modeling and Scheduling Approach for Allocating Distributed Multi-Robot Software to the Edge/Cloud}},
+  year      = {2024},
+}
+</pre></td>
+
+<<tr id="Zhang2024" class="entry">
+	<td>Zhang Y, Pasch F, <strong>Mirus F</strong>, Scholl K-U, Wurll C, Hein B (2024) <i>"Conquering the Robotic Software Development Cycle at Scale: Using KubeROS from Simulation to Real-world Deployment"</i>, In: IEEE 20th International Conference on Automation Science and Engineering (CASE), 2024
+	<p class="infolinks">[<a href="javascript:toggleInfo('Zhang2024','abstract')">Abstract</a>] [<a href="javascript:toggleInfo('Zhand2024','bibtex')">BibTeX</a>] </p>
+	</td>
+</tr>tbody>
 <tr id="Zhang2024" class="entry">
 	<td>Zhang Y, Pasch F, <strong>Mirus F</strong>, Scholl K-U, Wurll C, Hein B (2024) <i>"Conquering the Robotic Software Development Cycle at Scale: Using KubeROS from Simulation to Real-world Deployment"</i>, In: IEEE 20th International Conference on Automation Science and Engineering (CASE), 2024
 	<p class="infolinks">[<a href="javascript:toggleInfo('Zhang2024','abstract')">Abstract</a>] [<a href="javascript:toggleInfo('Zhand2024','bibtex')">BibTeX</a>] </p>
 	</td>
 </tr>
 <tr id="abs_Zhang2024" class="abstract noshow">
-	<td><b>Abstract</b>: In this paper, 
+	<td><b>Abstract</b>: Every day, the progress in robotics research is making the robots more intelligent and thus enables them to tackle ever more challenging tasks. Thereby however, the complexity of robotic software increases as well. To transfer and integrate state-of-the-art robotics algorithms into a working integrated system remains a challenging task, especially if deployment at a larger scale is required. One promising option to tackle such issues is to leverage the vast resources provided by cloud and edge computing, which power research from training to deployment in the area of AI already today, in the robotics domain. In this paper, we show how KubeROS, a platform for deploying ROS2-based applications across multiple devices in the onboard-/edge-/cloud-continuum, can be used to facilitate robotic development cycles from research to deployment. We propose a closed-loop workflow that maintains a single microservice-oriented and containerized software stack across all development phases. Within KubeROS, we propose a new feature called BatchJob, that utilizes edge and cloud clusters to perform accelerated experiments at a large scale to systematically evaluate the system with statistical significance. Finally, our approach enables a seamless transition into production and closes the loop for continuous improvements. To demonstrate the applicability and scalability of our solution, we chose mobile robot navigation as an example application and perform experiments on three levels: comparison of localization approaches with benchmark datasets, testing and evaluation with closed-loop simulation, and evaluation on a real robot. Compared to sequential execution on a single machine, our approach accelerates experiments by a factor of at least 30 on a 9-node edge cluster.
 </tr>
 <tr id="bib_Zhang2024" class="bibtex noshow">
 <td><b>BibTeX</b>:
@@ -418,7 +446,7 @@ p.infolinks { margin: 0.3em 0em 0em 0em; padding: 0px; }
 	</td>
 </tr>
 <tr id="abs_Mirus2024" class="abstract noshow">
-	<td><b>Abstract</b>: In this paper, 
+	<td><b>Abstract</b>: Modern algorithms allow robots to reach a greater level of autonomy and fulfill more challenging tasks. However, on-board limitations regarding computational and battery resources are hindering factors regarding the deployment of such algorithms particularly on mobile robots. Although offloading a majority of the algorithmic components to the edge or even cloud offers an attractive option to leverage massive computing power in robotics application, safety and reliability remain critical issues. This paper presents a minimalistic safety fallback mechanism when offloading mobile robot navigation to the edge, that ensures safe and collision-free navigation even in the presence of failures in the connection between the on-board and edge-devices. We show the effectiveness of our approach through extensive testing in three different relevant scenarios in a simulated warehouse environment. Our experiments demonstrate the effects of different fallback strategies and show how our proposed approach is able to ensure safety while allowing the robot to continue its mission during an interrupted connection and thus avoiding unnecessary downtime.
 </tr>
 <tr id="bib_Mirus2024" class="bibtex noshow">
 <td><b>BibTeX</b>:
